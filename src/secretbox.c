@@ -80,9 +80,10 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
         gimli_core_u8(buf);
     }
     leftover = mlen % RATE;
-    mem_xor(buf, &m[i * RATE], leftover);
-    gimli_core_u8(buf);
-
+    if (leftover != 0) {
+        mem_xor(buf, &m[i * RATE], leftover);
+        gimli_core_u8(buf);
+    }
     buf[leftover] ^= 0x1f;
     buf[RATE - 1] ^= 0x80;
     gimli_core_u8(buf);
@@ -106,9 +107,10 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
         gimli_core_u8(buf);
     }
     leftover = mlen % RATE;
-    mem_xor2(&ct[i * RATE], &m[i * RATE], buf, leftover);
-
-    gimli_core_u8(buf);
+    if (leftover != 0) {
+        mem_xor2(&ct[i * RATE], &m[i * RATE], buf, leftover);
+        gimli_core_u8(buf);
+    }
     COMPILER_ASSERT(MACBYTES <= RATE);
     mem_cpy(mac, buf, MACBYTES);
 
