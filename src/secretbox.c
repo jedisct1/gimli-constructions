@@ -6,13 +6,13 @@
 /*
    * First pass:
    pad(str_enc("sbx256") || str_enc(context)) || pad(k) ||
-   pad(str_env(iv) || right_enc(msg_id)) || msg
+   pad(str_enc(iv) || right_enc(msg_id)) || msg
 
    Output is the nonce.
 
    * Second pass:
    pad(str_enc("sbx256") || str_enc(context)) || pad(k) ||
-   pad(str_env(nonce) || right_enc(msg_id)) || msg
+   pad(str_enc(nonce) || right_enc(msg_id)) || msg
 
    This is used to encrypt the message. Output format is: nonce || mac || ciphertext
 */
@@ -53,9 +53,9 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
 
     COMPILER_ASSERT(gimli_secretbox_IVBYTES < RATE * 2);
     buf[0] ^= gimli_secretbox_IVBYTES;
-    mem_xor(buf, iv, RATE);
+    mem_xor(&buf[1], iv, RATE - 1);
     gimli_core_u8(buf);
-    mem_xor(buf, iv + RATE, gimli_secretbox_IVBYTES - RATE);
+    mem_xor(buf, iv + RATE - 1, gimli_secretbox_IVBYTES - (RATE - 1));
     STORE64_LE(msg_id_le, msg_id);
     COMPILER_ASSERT(gimli_secretbox_IVBYTES - RATE + 8 <= RATE);
     mem_xor(buf + gimli_secretbox_IVBYTES - RATE, msg_id_le, 8);
@@ -94,9 +94,9 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
 
     COMPILER_ASSERT(SIVBYTES < RATE * 2);
     buf[0] ^= SIVBYTES;
-    mem_xor(buf, siv, RATE);
+    mem_xor(&buf[1], siv, RATE - 1);
     gimli_core_u8(buf);
-    mem_xor(buf, siv + RATE, SIVBYTES - RATE);
+    mem_xor(buf, siv + RATE - 1, SIVBYTES - (RATE - 1));
     STORE64_LE(msg_id_le, msg_id);
     COMPILER_ASSERT(SIVBYTES - RATE + 8 <= RATE);
     mem_xor(buf + SIVBYTES - RATE, msg_id_le, 8);
