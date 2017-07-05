@@ -3,25 +3,24 @@
 #define BLOCK_SIZE 48
 #define RATE 16
 
-/* pad(str_enc("drbg") || pad(str_enc(k)) */
+/* pad(str_enc("drbg256")) || pad(seed) */
 
 void
 randombytes_buf_deterministic(void *out, size_t out_len,
                               const uint8_t seed[randombytes_SEEDBYTES])
 {
-    static const uint8_t prefix[] = { 4, 'd', 'r', 'b', 'g' };
+    static const uint8_t prefix[] = { 7, 'd', 'r', 'b', 'g', '2', '5', '6' };
     uint8_t buf[BLOCK_SIZE];
     int     i;
 
     COMPILER_ASSERT(sizeof prefix <= RATE);
-    mem_cpy(buf, prefix, 5);
-    mem_zero(buf + 5, sizeof buf - 5);
+    mem_cpy(buf, prefix, 8);
+    mem_zero(buf + 8, sizeof buf - 8);
     gimli_core_u8(buf);
 
     COMPILER_ASSERT(randombytes_SEEDBYTES == 2 * RATE);
     mem_xor(buf, seed, RATE);
     gimli_core_u8(buf);
-
     mem_xor(buf, seed + RATE, RATE);
     gimli_core_u8(buf);
 
