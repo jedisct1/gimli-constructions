@@ -78,7 +78,7 @@ gimli_hash_init_with_tweak(gimli_hash_state *state,
     block[RATE] = (uint8_t) key_len;
     mem_cpy(block + RATE + 1, key, key_len);
     p = (RATE + 1 + key_len + (RATE - 1)) & ~ (size_t) (RATE - 1);
-    block[p] = sizeof tweak;
+    block[p] = (uint8_t) sizeof tweak;
     STORE64_LE(&block[p + 1], tweak);
     p += RATE;
     mem_zero(state, sizeof *state);
