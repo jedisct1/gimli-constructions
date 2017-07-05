@@ -31,6 +31,9 @@ gimli_hash_update(gimli_hash_state *state, const void *in_, size_t in_len)
     return 0;
 }
 
+/* pad(str_enc("kmac") || str_enc(context)) || pad(str_enc(k)) ||
+   msg || right_enc(msg_len) || 0x00 */
+
 int
 gimli_hash_init(gimli_hash_state *state,
                 const char ctx[gimli_hash_CONTEXTBYTES],
@@ -56,6 +59,9 @@ gimli_hash_init(gimli_hash_state *state,
 
     return 0;
 }
+
+/* pad(str_enc("tmac") || str_enc(context)) || pad(str_enc(k)) ||
+   pad(right_enc(tweak)) || msg || right_enc(msg_len) || 0x00 */
 
 int
 gimli_hash_init_with_tweak(gimli_hash_state *state,
