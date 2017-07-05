@@ -61,6 +61,20 @@ int gimli_kdf_derive_from_key(uint8_t *subkey, size_t subkey_len,
 
 /* ---------------- */
 
+#define gimli_secretbox_CONTEXTBYTES 8
+#define gimli_secretbox_HEADERBYTES (20 + 16)
+#define gimli_secretbox_KEYBYTES 32
+#define gimli_secretbox_IVBYTES 20
+
+int
+gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
+                           uint64_t      msg_id,
+                           const char    ctx[gimli_secretbox_CONTEXTBYTES],
+                           const uint8_t key[gimli_secretbox_KEYBYTES],
+                           const uint8_t iv[gimli_secretbox_IVBYTES]);
+
+/* ---------------- */
+
 #define randombytes_SEEDBYTES 32
 
 void randombytes_buf_deterministic(void *out, size_t out_len,

@@ -1,8 +1,5 @@
 #include "gimli_p.h"
 
-#define BLOCK_SIZE 48
-#define RATE 16
-
 /* pad(str_enc("drbg256")) || pad(seed) */
 
 void

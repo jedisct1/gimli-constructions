@@ -285,4 +285,18 @@ mem_xor(void *__restrict__ dst_, const void *__restrict__ src_, size_t n)
         dst[i] ^= src[i];
     }
 }
+
+static inline void
+mem_xor2(void *__restrict__ dst_, const void *__restrict__ src1_,
+         const void *__restrict__ src2_, size_t n)
+{
+    unsigned char *      dst = (unsigned char *) dst_;
+    const unsigned char *src1 = (const unsigned char *) src1_;
+    const unsigned char *src2 = (const unsigned char *) src2_;    
+    size_t               i;
+
+    for (i = 0; i < n; i++) {
+        dst[i] = src1[i] ^ src2[i];
+    }
+}
 #endif

@@ -1,8 +1,5 @@
 #include "gimli_p.h"
 
-#define BLOCK_SIZE 48
-#define RATE 16
-
 int
 gimli_hash_update(gimli_hash_state *state, const void *in_, size_t in_len)
 {
