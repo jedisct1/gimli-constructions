@@ -51,7 +51,7 @@ gimli_hash_init(gimli_hash_state *state,
     mem_cpy(block + 6, ctx, 8);
     block[RATE] = (uint8_t) key_len;
     mem_cpy(block + RATE + 1, key, key_len);
-    p = (RATE + 1 + key_len + 15) & ~ (size_t) 15;
+    p = (RATE + 1 + key_len + (RATE - 1)) & ~ (size_t) (RATE - 1);
     mem_zero(state, sizeof *state);
     gimli_hash_update(state, block, p);
 
@@ -77,7 +77,7 @@ gimli_hash_init_with_tweak(gimli_hash_state *state,
     mem_cpy(block + 6, ctx, 8);
     block[RATE] = (uint8_t) key_len;
     mem_cpy(block + RATE + 1, key, key_len);
-    p = (RATE + 1 + key_len + 15) & ~ (size_t) 15;
+    p = (RATE + 1 + key_len + (RATE - 1)) & ~ (size_t) (RATE - 1);
     block[p] = sizeof tweak;
     STORE64_LE(&block[p + 1], tweak);
     p += RATE;
@@ -90,7 +90,7 @@ gimli_hash_init_with_tweak(gimli_hash_state *state,
 int
 gimli_hash_final(gimli_hash_state *state, uint8_t *out, size_t out_len)
 {
-    uint8_t  lc[3];
+    uint8_t  lc[4];
     uint8_t *buf = (uint8_t *) (void *) state->state;
     size_t   i;
     size_t   lc_len;
@@ -101,9 +101,10 @@ gimli_hash_final(gimli_hash_state *state, uint8_t *out, size_t out_len)
     COMPILER_ASSERT(gimli_hash_BYTES_MAX <= 0xffff);
     lc[1] = (uint8_t) out_len;
     lc[2] = (uint8_t) (out_len >> 8);
+    lc[3] = 0;
     lc_len = (size_t) (1 + (lc[2] != 0));
     lc[0] = (uint8_t) lc_len;
-    gimli_hash_update(state, lc, 1 + lc_len);
+    gimli_hash_update(state, lc, 1 + lc_len + 1);
 
     buf[state->buf_off] ^= 0x1f;
     buf[RATE - 1] ^= 0x80;
