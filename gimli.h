@@ -59,6 +59,13 @@ int gimli_kdf_derive_from_key(uint8_t *subkey, size_t subkey_len,
                               const char    ctx[gimli_kdf_CONTEXTBYTES],
                               const uint8_t key[gimli_kdf_KEYBYTES]);
 
+/* ---------------- */
+
+#define randombytes_SEEDBYTES 32
+
+void randombytes_buf_deterministic(void *out, size_t out_len,
+                                   const uint8_t seed[randombytes_SEEDBYTES]);
+
 #ifdef __cplusplus
 }
 #endif

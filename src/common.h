@@ -16,8 +16,10 @@
 # define __restrict__
 #endif
 
-#ifndef NATIVE_LITTLE_ENDIAN
-# define NATIVE_LITTLE_ENDIAN
+#ifndef NATIVE_BIG_ENDIAN
+# ifndef NATIVE_LITTLE_ENDIAN
+#  define NATIVE_LITTLE_ENDIAN
+# endif
 #endif
 
 #ifndef SIZE_MAX
@@ -272,4 +274,15 @@ mem_zero(void *dst_, size_t n)
     }
 }
 
+static inline void
+mem_xor(void *__restrict__ dst_, const void *__restrict__ src_, size_t n)
+{
+    unsigned char *      dst = (unsigned char *) dst_;
+    const unsigned char *src = (const unsigned char *) src_;
+    size_t               i;
+
+    for (i = 0; i < n; i++) {
+        dst[i] ^= src[i];
+    }
+}
 #endif
