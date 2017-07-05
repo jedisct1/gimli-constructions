@@ -14,8 +14,8 @@ randombytes_buf_deterministic(void *out, size_t out_len,
     int     i;
 
     COMPILER_ASSERT(sizeof prefix <= RATE);
-    mem_cpy(buf, prefix, 8);
-    mem_zero(buf + 8, sizeof buf - 8);
+    mem_cpy(buf, prefix, sizeof prefix);
+    mem_zero(buf + sizeof prefix, sizeof buf - sizeof prefix);
     gimli_core_u8(buf);
 
     COMPILER_ASSERT(randombytes_SEEDBYTES == 2 * RATE);
