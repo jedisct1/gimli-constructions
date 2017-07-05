@@ -41,6 +41,7 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
     COMPILER_ASSERT(sizeof prefix + gimli_secretbox_CONTEXTBYTES <= RATE);
     mem_cpy(buf, prefix, sizeof prefix);
     mem_cpy(buf + sizeof prefix, ctx, gimli_secretbox_CONTEXTBYTES);
+    buf[RATE - 1] ^= 0x80; /* only for the first pass */
     COMPILER_ASSERT(sizeof prefix + gimli_secretbox_CONTEXTBYTES == RATE);
     gimli_core_u8(buf);
 
