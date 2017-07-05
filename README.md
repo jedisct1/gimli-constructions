@@ -13,7 +13,7 @@ This is a work in progress.
 
 The construction used for generic hashing is similar to the NIST SP
 800-185 KMAC construction, leveraging the Gimli hash function instead
-of Cshake.
+of cSHAKE.
 
 In order to encourage reasonable practices, this specific
 implementation requires an optional key between 128 and 256 bits, and
