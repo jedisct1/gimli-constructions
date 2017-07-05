@@ -47,6 +47,18 @@ int gimli_hash_update(gimli_hash_state *state, const void *in_, size_t in_len);
 
 int gimli_hash_final(gimli_hash_state *state, uint8_t *out, size_t out_len);
 
+/* ---------------- */
+
+#define gimli_kdf_CONTEXTBYTES 8
+#define gimli_kdf_KEYBYTES 32
+#define gimli_kdf_BYTES_MAX 65535
+#define gimli_kdf_BYTES_MIN 16
+
+int gimli_kdf_derive_from_key(uint8_t *subkey, size_t subkey_len,
+                              uint64_t      subkey_id,
+                              const char    ctx[gimli_kdf_CONTEXTBYTES],
+                              const uint8_t key[gimli_kdf_KEYBYTES]);
+
 #ifdef __cplusplus
 }
 #endif

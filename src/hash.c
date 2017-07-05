@@ -1,4 +1,3 @@
-
 #include "gimli_p.h"
 
 #define BLOCK_SIZE 48
