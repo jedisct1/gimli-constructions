@@ -58,6 +58,24 @@ gimli_secretbox_setup(uint8_t buf[gimli_BLOCKBYTES],
 }
 
 
+static void
+gimli_secretbox_xor(uint8_t buf[gimli_BLOCKBYTES],
+                    uint8_t *out, const uint8_t *in, size_t inlen)
+{
+    size_t i;
+    size_t leftover;
+
+    for (i = 0; i < inlen / gimli_RATE; i++) {
+        mem_xor2(&out[i * gimli_RATE], &in[i * gimli_RATE], buf, gimli_RATE);
+        gimli_core_u8(buf);
+    }
+    leftover = inlen % gimli_RATE;
+    if (leftover != 0) {
+        mem_xor2(&out[i * gimli_RATE], &in[i * gimli_RATE], buf, leftover);
+        gimli_core_u8(buf);
+    }
+}
+
 int
 gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
                            uint64_t      msg_id,
@@ -104,15 +122,7 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
     buf[gimli_RATE - 1] ^= 0x80;
     gimli_core_u8(buf);
 
-    for (i = 0; i < mlen / gimli_RATE; i++) {
-        mem_xor2(&ct[i * gimli_RATE], &m[i * gimli_RATE], buf, gimli_RATE);
-        gimli_core_u8(buf);
-    }
-    leftover = mlen % gimli_RATE;
-    if (leftover != 0) {
-        mem_xor2(&ct[i * gimli_RATE], &m[i * gimli_RATE], buf, leftover);
-        gimli_core_u8(buf);
-    }
+    gimli_secretbox_xor(buf, ct, m, mlen);
     COMPILER_ASSERT(gimli_secretbox_MACBYTES <= gimli_RATE);
     mem_cpy(mac, buf, gimli_secretbox_MACBYTES);
 
@@ -132,8 +142,6 @@ gimli_secretbox_decrypt(void *m_, const uint8_t *c, size_t clen,
     const uint8_t *mac = &c[gimli_secretbox_SIVBYTES];
     const uint8_t *ct = &c[gimli_secretbox_SIVBYTES + gimli_secretbox_MACBYTES];
     uint8_t       *m = (uint8_t *) m_;
-    size_t         i;
-    size_t         leftover;
     size_t         mlen;
     uint32_t       cv;
 
@@ -141,23 +149,14 @@ gimli_secretbox_decrypt(void *m_, const uint8_t *c, size_t clen,
         return -1;
     }
     mlen = clen - gimli_secretbox_HEADERBYTES;
+    mem_cpy(pub_mac, mac, sizeof pub_mac);
     COMPILER_ASSERT(gimli_secretbox_SIVBYTES == gimli_secretbox_IVBYTES);
     gimli_secretbox_setup(buf, msg_id, ctx, key, siv, 0);
     buf[0] ^= 0x1f;
     buf[gimli_RATE - 1] ^= 0x80;
     gimli_core_u8(buf);
 
-    mem_cpy(pub_mac, mac, sizeof pub_mac);
-
-    for (i = 0; i < mlen / gimli_RATE; i++) {
-        mem_xor2(&m[i * gimli_RATE], &ct[i * gimli_RATE], buf, gimli_RATE);
-        gimli_core_u8(buf);
-    }
-    leftover = mlen % gimli_RATE;
-    if (leftover != 0) {
-        mem_xor2(&m[i * gimli_RATE], &ct[i * gimli_RATE], buf, leftover);
-        gimli_core_u8(buf);
-    }
+    gimli_secretbox_xor(buf, m, ct, mlen);
     COMPILER_ASSERT(gimli_secretbox_MACBYTES <= gimli_RATE);
     cv = mem_ct_cmp_u32(state, pub_mac, gimli_secretbox_MACBYTES / 4);
     mem_ct_zero_u32(state, gimli_BLOCKBYTES / 4);
