@@ -27,7 +27,7 @@ gimli_core(uint32_t state[static BLOCK_SIZE / 4])
             x        = state[2];
             state[2] = state[3];
             state[3] = x;
-            state[0] ^= ((uint32_t) 0x9e377900 | round);            
+            state[0] ^= ((uint32_t) 0x9e377900 | round);
             break;
         case 2:
             x        = state[0];
