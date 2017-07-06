@@ -315,8 +315,8 @@ mem_secure_zero_u32(uint32_t *dst_, size_t n)
 static inline uint32_t
 mem_secure_cmp_u32(const uint32_t *a_, const uint32_t *b, size_t n)
 {
-    volatile uint32_t volatile * a =
-        (volatile uint32_t volatile *) (void *) a_;
+    const volatile uint32_t volatile * a =
+        (const volatile uint32_t volatile *) (const void *) a_;
     size_t   i;
     uint32_t cv = 0;
 
