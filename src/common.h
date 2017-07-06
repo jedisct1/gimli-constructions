@@ -28,6 +28,14 @@
 
 #define COMPILER_ASSERT(X) (void) sizeof(char[(X) ? 1 : -1])
 
+#ifndef CRYPTO_ALIGN
+# if defined(__INTEL_COMPILER) || defined(_MSC_VER)
+#  define CRYPTO_ALIGN(x) __declspec(align(x))
+# else
+#  define CRYPTO_ALIGN(x) __attribute__ ((aligned(x)))
+# endif
+#endif
+
 #define ROTL32(x, b) (uint32_t)(((x) << (b)) | ((x) >> (32 - (b))))
 #define ROTL64(x, b) (uint64_t)(((x) << (b)) | ((x) >> (64 - (b))))
 #define ROTR32(x, b) (uint32_t)(((x) >> (b)) | ((x) << (32 - (b))))
@@ -292,7 +300,7 @@ mem_xor2(void *__restrict__ dst_, const void *__restrict__ src1_,
 {
     unsigned char *      dst = (unsigned char *) dst_;
     const unsigned char *src1 = (const unsigned char *) src1_;
-    const unsigned char *src2 = (const unsigned char *) src2_;    
+    const unsigned char *src2 = (const unsigned char *) src2_;
     size_t               i;
 
     for (i = 0; i < n; i++) {
