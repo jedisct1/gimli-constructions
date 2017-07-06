@@ -119,3 +119,19 @@ gimli_hash_final(gimli_hash_state *state, uint8_t *out, size_t out_len)
     }
     return 0;
 }
+
+int
+gimli_hash_hash(uint8_t *out, size_t out_len, const void *in_, size_t in_len,
+                const char ctx[gimli_hash_CONTEXTBYTES], const uint8_t *key,
+                size_t key_len)
+{
+    gimli_hash_state st;
+    const uint8_t *  in = (const uint8_t *) in_;
+
+    if (gimli_hash_init(&st, ctx, key, key_len) != 0 ||
+        gimli_hash_update(&st, in, in_len) != 0 ||
+        gimli_hash_final(&st, out, out_len) != 0) {
+        return -1;
+    }
+    return 0;
+}

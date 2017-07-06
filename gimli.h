@@ -47,6 +47,10 @@ int gimli_hash_update(gimli_hash_state *state, const void *in_, size_t in_len);
 
 int gimli_hash_final(gimli_hash_state *state, uint8_t *out, size_t out_len);
 
+int gimli_hash_hash(uint8_t *out, size_t out_len, const void *in_, size_t in_len,
+                    const char ctx[gimli_hash_CONTEXTBYTES], const uint8_t *key,
+                    size_t key_len);
+
 /* ---------------- */
 
 #define gimli_kdf_CONTEXTBYTES 8
