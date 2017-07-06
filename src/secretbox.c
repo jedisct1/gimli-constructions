@@ -145,6 +145,13 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
     gimli_core_u8(buf);
 
     gimli_secretbox_xor_enc(buf, ct, m, mlen);
+
+    COMPILER_ASSERT(gimli_secretbox_KEYBYTES <= gimli_BLOCKBYTES - gimli_RATE);
+    buf[0] ^= 0x1f;
+    buf[gimli_RATE - 1] ^= 0x80;
+    mem_xor(buf + gimli_RATE, key, gimli_secretbox_KEYBYTES);
+    gimli_core_u8(buf);
+
     COMPILER_ASSERT(gimli_secretbox_MACBYTES <= gimli_BLOCKBYTES - gimli_RATE);
     mem_cpy(mac, buf + gimli_RATE, gimli_secretbox_MACBYTES);
 
@@ -179,6 +186,13 @@ gimli_secretbox_decrypt(void *m_, const uint8_t *c, size_t clen,
     gimli_core_u8(buf);
 
     gimli_secretbox_xor_dec(buf, m, ct, mlen);
+
+    COMPILER_ASSERT(gimli_secretbox_KEYBYTES <= gimli_BLOCKBYTES - gimli_RATE);
+    buf[0] ^= 0x1f;
+    buf[gimli_RATE - 1] ^= 0x80;
+    mem_xor(buf + gimli_RATE, key, gimli_secretbox_KEYBYTES);
+    gimli_core_u8(buf);
+
     COMPILER_ASSERT(gimli_secretbox_MACBYTES <= gimli_BLOCKBYTES - gimli_RATE);
     COMPILER_ASSERT(gimli_RATE % 4 == 0);
     cv = mem_ct_cmp_u32(state + gimli_RATE / 4, pub_mac,
