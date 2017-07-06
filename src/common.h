@@ -309,7 +309,7 @@ mem_xor2(void *__restrict__ dst_, const void *__restrict__ src1_,
 }
 
 static inline void
-mem_secure_zero_u32(uint32_t *dst_, size_t n)
+mem_ct_zero_u32(uint32_t *dst_, size_t n)
 {
     volatile uint32_t volatile * dst =
         (volatile uint32_t volatile *) (void *) dst_;
@@ -321,7 +321,11 @@ mem_secure_zero_u32(uint32_t *dst_, size_t n)
 }
 
 static inline uint32_t
-mem_secure_cmp_u32(const uint32_t *b1_, const uint32_t *b2, size_t n)
+mem_ct_cmp_u32(const uint32_t *b1_, const uint32_t *b2, size_t n)
+__attribute__((warn_unused_result));
+
+static inline uint32_t
+mem_ct_cmp_u32(const uint32_t *b1_, const uint32_t *b2, size_t n)
 {
     const volatile uint32_t volatile * b1 =
         (const volatile uint32_t volatile *) (const void *) b1_;

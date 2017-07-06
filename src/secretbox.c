@@ -1,7 +1,7 @@
 #include "gimli_p.h"
 
-#define SIVBYTES 20
-#define MACBYTES 16
+#define gimli_secretbox_SIVBYTES 20
+#define gimli_secretbox_MACBYTES 16
 
 /*
    * First pass:
@@ -28,7 +28,8 @@ gimli_secretbox_setup(uint8_t buf[gimli_BLOCKBYTES],
     static const uint8_t prefix[] = { 6, 's', 'b', 'x', '2', '5', '6', 8 };
     uint8_t msg_id_le[8];
 
-    mem_zero(buf, gimli_BLOCKBYTES);
+    mem_zero(buf + sizeof prefix + gimli_secretbox_CONTEXTBYTES,
+             gimli_BLOCKBYTES - sizeof prefix - gimli_secretbox_CONTEXTBYTES);
     COMPILER_ASSERT(gimli_secretbox_CONTEXTBYTES == 8);
     COMPILER_ASSERT(sizeof prefix + gimli_secretbox_CONTEXTBYTES <= gimli_RATE);
     mem_cpy(buf, prefix, sizeof prefix);
@@ -68,8 +69,8 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
     uint8_t       *buf = (uint8_t *) (void *) state;
     const uint8_t *m = (const uint8_t *) m_;
     uint8_t       *siv = &c[0];
-    uint8_t       *mac = &c[SIVBYTES];
-    uint8_t       *ct = &c[SIVBYTES + MACBYTES];
+    uint8_t       *mac = &c[gimli_secretbox_SIVBYTES];
+    uint8_t       *ct = &c[gimli_secretbox_SIVBYTES + gimli_secretbox_MACBYTES];
     size_t         i;
     size_t         leftover;
 
@@ -89,14 +90,14 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
     buf[gimli_RATE - 1] ^= 0x80;
     gimli_core_u8(buf);
 
-    COMPILER_ASSERT(SIVBYTES <= gimli_RATE * 2);
-    mem_cpy(siv, buf, SIVBYTES);
+    COMPILER_ASSERT(gimli_secretbox_SIVBYTES <= gimli_RATE * 2);
+    mem_cpy(siv, buf, gimli_secretbox_SIVBYTES);
     gimli_core_u8(buf);
-    mem_cpy(siv + gimli_RATE, buf, SIVBYTES - gimli_RATE);
+    mem_cpy(siv + gimli_RATE, buf, gimli_secretbox_SIVBYTES - gimli_RATE);
 
     /* second pass: encrypt the message, squeeze an extra block for the MAC */
 
-    COMPILER_ASSERT(SIVBYTES == gimli_secretbox_IVBYTES);
+    COMPILER_ASSERT(gimli_secretbox_SIVBYTES == gimli_secretbox_IVBYTES);
     gimli_secretbox_setup(buf, msg_id, ctx, key, siv, 0);
 
     buf[0] ^= 0x1f;
@@ -112,8 +113,8 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
         mem_xor2(&ct[i * gimli_RATE], &m[i * gimli_RATE], buf, leftover);
         gimli_core_u8(buf);
     }
-    COMPILER_ASSERT(MACBYTES <= gimli_RATE);
-    mem_cpy(mac, buf, MACBYTES);
+    COMPILER_ASSERT(gimli_secretbox_MACBYTES <= gimli_RATE);
+    mem_cpy(mac, buf, gimli_secretbox_MACBYTES);
 
     return 0;
 }
@@ -124,12 +125,12 @@ gimli_secretbox_decrypt(void *m_, const uint8_t *c, size_t clen,
                         const char    ctx[gimli_secretbox_CONTEXTBYTES],
                         const uint8_t key[gimli_secretbox_KEYBYTES])
 {
-    uint32_t       pub_mac[MACBYTES / 4];
+    uint32_t       pub_mac[gimli_secretbox_MACBYTES / 4];
     uint32_t       state[gimli_BLOCKBYTES / 4];
     uint8_t       *buf = (uint8_t *) (void *) state;
     const uint8_t *siv = &c[0];
-    const uint8_t *mac = &c[SIVBYTES];
-    const uint8_t *ct = &c[SIVBYTES + MACBYTES];
+    const uint8_t *mac = &c[gimli_secretbox_SIVBYTES];
+    const uint8_t *ct = &c[gimli_secretbox_SIVBYTES + gimli_secretbox_MACBYTES];
     uint8_t       *m = (uint8_t *) m_;
     size_t         i;
     size_t         leftover;
@@ -140,7 +141,7 @@ gimli_secretbox_decrypt(void *m_, const uint8_t *c, size_t clen,
         return -1;
     }
     mlen = clen - gimli_secretbox_HEADERBYTES;
-    COMPILER_ASSERT(SIVBYTES == gimli_secretbox_IVBYTES);
+    COMPILER_ASSERT(gimli_secretbox_SIVBYTES == gimli_secretbox_IVBYTES);
     gimli_secretbox_setup(buf, msg_id, ctx, key, siv, 0);
     buf[0] ^= 0x1f;
     buf[gimli_RATE - 1] ^= 0x80;
@@ -157,9 +158,9 @@ gimli_secretbox_decrypt(void *m_, const uint8_t *c, size_t clen,
         mem_xor2(&m[i * gimli_RATE], &ct[i * gimli_RATE], buf, leftover);
         gimli_core_u8(buf);
     }
-    COMPILER_ASSERT(MACBYTES <= gimli_RATE);
-    cv = mem_secure_cmp_u32(state, pub_mac, MACBYTES / 4);
-    mem_secure_zero_u32(state, gimli_BLOCKBYTES / 4);
+    COMPILER_ASSERT(gimli_secretbox_MACBYTES <= gimli_RATE);
+    cv = mem_ct_cmp_u32(state, pub_mac, gimli_secretbox_MACBYTES / 4);
+    mem_ct_zero_u32(state, gimli_BLOCKBYTES / 4);
     if (cv != 0) {
         mem_zero(m, mlen);
         return -1;
