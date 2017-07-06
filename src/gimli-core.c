@@ -33,7 +33,7 @@ static const uint32_t coeffs[24] CRYPTO_ALIGN(16) = {
 };
 
 static void
-gimli_core(uint32_t state[BLOCK_SIZE / 4])
+gimli_core(uint32_t state[gimli_BLOCKBYTES / 4])
 {
     __m128i x = _mm_loadu_si128((void *) &state[0]);
     __m128i y = _mm_loadu_si128((void *) &state[4]);
@@ -89,7 +89,7 @@ gimli_core(uint32_t state[BLOCK_SIZE / 4])
 #else
 
 static void
-gimli_core(uint32_t state[BLOCK_SIZE / 4])
+gimli_core(uint32_t state[gimli_BLOCKBYTES / 4])
 {
     unsigned int round;
     unsigned int column;
@@ -131,7 +131,7 @@ gimli_core(uint32_t state[BLOCK_SIZE / 4])
 #endif
 
 void
-gimli_core_u8(uint8_t state_u8[BLOCK_SIZE])
+gimli_core_u8(uint8_t state_u8[gimli_BLOCKBYTES])
 {
 #ifndef NATIVE_LITTLE_ENDIAN
     uint32_t state_u32[12];

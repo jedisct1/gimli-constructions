@@ -7,9 +7,9 @@
 #include "common.h"
 #include "../gimli.h"
 
-#define BLOCK_SIZE 48
-#define RATE 16
+#define gimli_BLOCKBYTES 48
+#define gimli_RATE 16
 
-void gimli_core_u8(uint8_t state_u8[BLOCK_SIZE]);
+void gimli_core_u8(uint8_t state_u8[gimli_BLOCKBYTES]);
 
 #endif
