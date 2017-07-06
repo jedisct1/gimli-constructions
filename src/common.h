@@ -321,15 +321,15 @@ mem_secure_zero_u32(uint32_t *dst_, size_t n)
 }
 
 static inline uint32_t
-mem_secure_cmp_u32(const uint32_t *a_, const uint32_t *b, size_t n)
+mem_secure_cmp_u32(const uint32_t *b1_, const uint32_t *b2, size_t n)
 {
-    const volatile uint32_t volatile * a =
-        (const volatile uint32_t volatile *) (const void *) a_;
+    const volatile uint32_t volatile * b1 =
+        (const volatile uint32_t volatile *) (const void *) b1_;
     size_t   i;
     uint32_t cv = 0;
 
     for (i = 0; i < n; i++) {
-        cv |= a[i] ^ b[i];
+        cv |= b1[i] ^ b2[i];
     }
     return cv;
 }
