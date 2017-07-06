@@ -7,8 +7,9 @@ randombytes_buf_deterministic(void *out, size_t out_len,
                               const uint8_t seed[randombytes_SEEDBYTES])
 {
     static const uint8_t prefix[] = { 7, 'd', 'r', 'b', 'g', '2', '5', '6' };
-    uint8_t buf[BLOCK_SIZE];
-    int     i;
+    uint32_t  state[BLOCK_SIZE / 4];
+    uint8_t  *buf = (uint8_t *) (void *) state;
+    int       i;
 
     COMPILER_ASSERT(sizeof prefix <= RATE);
     mem_cpy(buf, prefix, sizeof prefix);

@@ -64,7 +64,8 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
                            const uint8_t key[gimli_secretbox_KEYBYTES],
                            const uint8_t iv[gimli_secretbox_IVBYTES])
 {
-    uint8_t        buf[BLOCK_SIZE];
+    uint32_t       state[BLOCK_SIZE / 4];
+    uint8_t       *buf = (uint8_t *) (void *) state;
     const uint8_t *m = (const uint8_t *) m_;
     uint8_t       *siv = &c[0];
     uint8_t       *mac = &c[SIVBYTES];
@@ -123,16 +124,17 @@ gimli_secretbox_decrypt(void *m_, const uint8_t *c, size_t clen,
                         const char    ctx[gimli_secretbox_CONTEXTBYTES],
                         const uint8_t key[gimli_secretbox_KEYBYTES])
 {
-    uint8_t          buf[BLOCK_SIZE];
-    uint8_t          pub_mac[MACBYTES];
-    const uint8_t   *siv = &c[0];
-    const uint8_t   *mac = &c[SIVBYTES];
-    const uint8_t   *ct = &c[SIVBYTES + MACBYTES];
-    uint8_t         *m = (uint8_t *) m_;
-    size_t           i;
-    size_t           leftover;
-    size_t           mlen;
-    volatile uint8_t cv = 0;
+    uint32_t       pub_mac[MACBYTES / 4];
+    uint32_t       state[BLOCK_SIZE / 4];
+    uint8_t       *buf = (uint8_t *) (void *) state;
+    const uint8_t *siv = &c[0];
+    const uint8_t *mac = &c[SIVBYTES];
+    const uint8_t *ct = &c[SIVBYTES + MACBYTES];
+    uint8_t       *m = (uint8_t *) m_;
+    size_t         i;
+    size_t         leftover;
+    size_t         mlen;
+    uint32_t       cv;
 
     if (clen < gimli_secretbox_HEADERBYTES) {
         return -1;
@@ -156,10 +158,8 @@ gimli_secretbox_decrypt(void *m_, const uint8_t *c, size_t clen,
         gimli_core_u8(buf);
     }
     COMPILER_ASSERT(MACBYTES <= RATE);
-    mem_xor(buf, pub_mac, MACBYTES);
-    for (i = 0; i < MACBYTES; i++) {
-        cv |= * (const volatile uint8_t * volatile) (const void *) &buf[i];
-    }
+    cv = mem_secure_cmp_u32(state, pub_mac, MACBYTES / 4);
+    mem_secure_zero_u32(state, BLOCK_SIZE / 4);
     if (cv != 0) {
         mem_zero(m, mlen);
         return -1;

@@ -299,4 +299,30 @@ mem_xor2(void *__restrict__ dst_, const void *__restrict__ src1_,
         dst[i] = src1[i] ^ src2[i];
     }
 }
+
+static inline void
+mem_secure_zero_u32(uint32_t *dst_, size_t n)
+{
+    volatile uint32_t volatile * dst =
+        (volatile uint32_t volatile *) (void *) dst_;
+    size_t i;
+
+    for (i = 0; i < n; i++) {
+        dst[i] = 0;
+    }
+}
+
+static inline uint32_t
+mem_secure_cmp_u32(const uint32_t *a_, const uint32_t *b, size_t n)
+{
+    volatile uint32_t volatile * a =
+        (volatile uint32_t volatile *) (void *) a_;
+    size_t   i;
+    uint32_t cv = 0;
+
+    for (i = 0; i < n; i++) {
+        cv |= a[i] ^ b[i];
+    }
+    return cv;
+}
 #endif

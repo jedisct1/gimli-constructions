@@ -1,7 +1,7 @@
 #include "gimli_p.h"
 
 static void
-gimli_core(uint32_t state[12])
+gimli_core(uint32_t state[BLOCK_SIZE / 4])
 {
     unsigned int round;
     unsigned int column;
@@ -42,7 +42,7 @@ gimli_core(uint32_t state[12])
 }
 
 void
-gimli_core_u8(uint8_t state_u8[48])
+gimli_core_u8(uint8_t state_u8[BLOCK_SIZE])
 {
 #ifndef NATIVE_LITTLE_ENDIAN
     uint32_t state_u32[12];
@@ -56,6 +56,6 @@ gimli_core_u8(uint8_t state_u8[48])
         STORE32_LE(&state_u8[i * 4], state_u32[i]);
     }
 #else
-    gimli_core((uint32_t *) (void *) state_u8);
+    gimli_core((uint32_t *) (void *) state_u8); /* state_u8 must be properly aligned */
 #endif
 }
