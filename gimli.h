@@ -21,9 +21,7 @@ extern "C" {
 typedef struct gimli_hash_state {
     uint32_t state[12];
     uint8_t  buf_off;
-    uint8_t  align_0;
-    uint8_t  out_len;
-    uint8_t  align_1;
+    uint8_t  align[3];
 } gimli_hash_state;
 
 #define gimli_hash_BYTES 32
