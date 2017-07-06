@@ -52,7 +52,7 @@ gimli_core(uint32_t state[gimli_BLOCKBYTES / 4])
         z    = newz;
 
         x = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
-        x ^= ((__m128i *) coeffs)[round];
+        x ^= ((const __m128i *) (const void *) coeffs)[round];
 
         x    = rotate24(x);
         y    = rotate(y, S);
