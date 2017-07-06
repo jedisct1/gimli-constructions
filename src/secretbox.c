@@ -98,7 +98,7 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
     COMPILER_ASSERT(SIVBYTES == gimli_secretbox_IVBYTES);
     gimli_secretbox_setup(buf, msg_id, ctx, key, siv, 0);
 
-    buf[leftover] ^= 0x1f;
+    buf[0] ^= 0x1f;
     buf[RATE - 1] ^= 0x80;
     gimli_core_u8(buf);
 
@@ -114,5 +114,55 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
     COMPILER_ASSERT(MACBYTES <= RATE);
     mem_cpy(mac, buf, MACBYTES);
 
+    return 0;
+}
+
+int
+gimli_secretbox_decrypt(void *m_, const uint8_t *c, size_t clen,
+                        uint64_t      msg_id,
+                        const char    ctx[gimli_secretbox_CONTEXTBYTES],
+                        const uint8_t key[gimli_secretbox_KEYBYTES])
+{
+    uint8_t          buf[BLOCK_SIZE];
+    uint8_t          pub_mac[MACBYTES];
+    const uint8_t   *siv = &c[0];
+    const uint8_t   *mac = &c[SIVBYTES];
+    const uint8_t   *ct = &c[SIVBYTES + MACBYTES];
+    uint8_t         *m = (uint8_t *) m_;
+    size_t           i;
+    size_t           leftover;
+    size_t           mlen;
+    volatile uint8_t cv = 0;
+
+    if (clen < gimli_secretbox_HEADERBYTES) {
+        return -1;
+    }
+    mlen = clen - gimli_secretbox_HEADERBYTES;
+    COMPILER_ASSERT(SIVBYTES == gimli_secretbox_IVBYTES);
+    gimli_secretbox_setup(buf, msg_id, ctx, key, siv, 0);
+    buf[0] ^= 0x1f;
+    buf[RATE - 1] ^= 0x80;
+    gimli_core_u8(buf);
+
+    mem_cpy(pub_mac, mac, sizeof pub_mac);
+
+    for (i = 0; i < mlen / RATE; i++) {
+        mem_xor2(&m[i * RATE], &ct[i * RATE], buf, RATE);
+        gimli_core_u8(buf);
+    }
+    leftover = mlen % RATE;
+    if (leftover != 0) {
+        mem_xor2(&m[i * RATE], &ct[i * RATE], buf, leftover);
+        gimli_core_u8(buf);
+    }
+    COMPILER_ASSERT(MACBYTES <= RATE);
+    mem_xor(buf, pub_mac, MACBYTES);
+    for (i = 0; i < MACBYTES; i++) {
+        cv |= * (const volatile uint8_t * volatile) (const void *) &buf[i];
+    }
+    if (cv != 0) {
+        mem_zero(m, mlen);
+        return -1;
+    }
     return 0;
 }

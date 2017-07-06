@@ -73,6 +73,11 @@ gimli_secretbox_encrypt_iv(uint8_t *c, const void *m_, size_t mlen,
                            const uint8_t key[gimli_secretbox_KEYBYTES],
                            const uint8_t iv[gimli_secretbox_IVBYTES]);
 
+int gimli_secretbox_decrypt(void *m_, const uint8_t *c, size_t clen,
+                            uint64_t msg_id,
+                            const char ctx[gimli_secretbox_CONTEXTBYTES],
+                            const uint8_t key[gimli_secretbox_KEYBYTES]);
+
 /* ---------------- */
 
 #define randombytes_SEEDBYTES 32
