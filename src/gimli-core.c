@@ -1,7 +1,7 @@
 #include "gimli_p.h"
 
 static void
-gimli_core(uint32_t state[BLOCK_SIZE / 4])
+gimli_core(uint32_t state[static BLOCK_SIZE / 4])
 {
     unsigned int round;
     unsigned int column;
@@ -19,15 +19,17 @@ gimli_core(uint32_t state[BLOCK_SIZE / 4])
             state[4 + column] = y ^ x ^ ((x | z) << 1);
             state[column]     = z ^ y ^ ((x & y) << 3);
         }
-        if ((round & 3) == 0) {
+        switch (round & 3) {
+        case 0:
             x        = state[0];
             state[0] = state[1];
             state[1] = x;
             x        = state[2];
             state[2] = state[3];
             state[3] = x;
-        }
-        if ((round & 3) == 2) {
+            state[0] ^= ((uint32_t) 0x9e377900 | round);            
+            break;
+        case 2:
             x        = state[0];
             state[0] = state[2];
             state[2] = x;
@@ -35,14 +37,11 @@ gimli_core(uint32_t state[BLOCK_SIZE / 4])
             state[1] = state[3];
             state[3] = x;
         }
-        if ((round & 3) == 0) {
-            state[0] ^= ((uint32_t) 0x9e377900 | round);
-        }
     }
 }
 
 void
-gimli_core_u8(uint8_t state_u8[BLOCK_SIZE])
+gimli_core_u8(uint8_t state_u8[static BLOCK_SIZE])
 {
 #ifndef NATIVE_LITTLE_ENDIAN
     uint32_t state_u32[12];
